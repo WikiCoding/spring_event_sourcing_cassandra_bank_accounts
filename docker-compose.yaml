@@ -1,0 +1,37 @@
+services:
+  cassandra:
+    image: cassandra:3.11.11
+    hostname: cassandra
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "describe keyspaces" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_DC: USE1
+
+  cqlsh:
+    image: cassandra:3.11.11
+    entrypoint: bash -c "sleep 35 && echo loading cassandra keyspace && cqlsh cassandra -f /schema.cql && echo 'Docker ready'"
+    volumes:
+      - ./data/cassandra/schema.cql:/schema.cql
+    depends_on:
+      cassandra:
+        condition: service_healthy
+
+  cassandra-web:
+    build: ./
+    image: ipushc/cassandra-web:latest
+    depends_on:
+      - cassandra
+    ports:
+      - 80:80
+    environment:
+      HOST_PORT: ":80"
+      CASSANDRA_HOST: cassandra
+      CASSANDRA_PORT: 9042
+      CASSANDRA_USERNAME: cassandra
+      CASSANDRA_PASSWORD: cassandra
+    restart: unless-stopped
