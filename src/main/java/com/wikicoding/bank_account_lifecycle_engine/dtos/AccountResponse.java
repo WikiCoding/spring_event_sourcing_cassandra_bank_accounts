@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AccountResponse {
     private final String accountNumber;
+    private final String accountName;
     private final double currentBalance;
     private final int currentVersion;
 }

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +22,14 @@ public class CommandHandler {
     private final EventStore eventStore;
 
     public Account executeCommand(Command cmd) {
-        CommandDetails commandDetails = extractCommandDetails(cmd);
+        DomainEvent domainEvent = extractCommandDetails(cmd);
 
-        List<DomainEvent> domainEvents = eventStore.getAccountEvents(commandDetails.getAccountNumber());
+        List<DomainEvent> domainEvents = eventStore.getAccountEvents(cmd.getAccountNumber());
 
         Account account = new Account();
         account.rebuildState(domainEvents);
         if (account.getAccountNumber() != null) log.info("Account rebuilt state: {}", account);
-        account.apply(commandDetails.getDomainEvent());
+        account.apply(domainEvent);
 
         eventStore.persistState(account.getDomainEvents());
         log.info("Account persisted state for accountNumber: {}", account.getAccountNumber());
@@ -38,31 +37,27 @@ public class CommandHandler {
         return account;
     }
 
-    private CommandDetails extractCommandDetails(Command cmd) {
-        String accountNumber;
+    private DomainEvent extractCommandDetails(Command cmd) {
         DomainEvent domainEvent;
 
         switch (cmd) {
             case CreateAccountCommand command -> {
-                accountNumber = command.getAccountNumber();
                 domainEvent = new CreatedAccountEvent(
-                        accountNumber,
+                        command.getAccountNumber(),
                         command.getAccountName(),
                         command.getStartBalance(),
                         LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                         1
                 );
-                log.info("Creating account with account number: {}", accountNumber);
+                log.info("Creating account with account number: {}", command.getAccountNumber());
             }
             case DepositMoneyCommand command -> {
                 domainEvent = new DepositedMoneyEvent(command.getAccountNumber(), command.getAmount());
-                accountNumber = command.getAccountNumber();
-                log.info("Depositing {}€ in account number {}", command.getAmount(), accountNumber);
+                log.info("Depositing {}€ in account number {}", command.getAmount(), command.getAccountNumber());
             }
             case WithdrawMoneyCommand command -> {
                 domainEvent = new WithdrewMoneyEvent(command.getAccountNumber(), command.getAmount());
-                accountNumber = command.getAccountNumber();
-                log.info("Withdrawing {}€ in account number {}", command.getAmount(), accountNumber);
+                log.info("Withdrawing {}€ in account number {}", command.getAmount(), command.getAccountNumber());
             }
             default -> {
                 log.error("Unknown command or not yet implemented: {}", cmd.getClass().getSimpleName());
@@ -71,7 +66,7 @@ public class CommandHandler {
             }
         }
 
-        return new CommandDetails(accountNumber, domainEvent);
+        return domainEvent;
     }
 
     public Account getAccountByAccountNumber(String accountNumber) {

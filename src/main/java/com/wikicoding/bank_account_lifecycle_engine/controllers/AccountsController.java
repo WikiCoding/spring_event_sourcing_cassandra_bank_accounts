@@ -1,5 +1,6 @@
 package com.wikicoding.bank_account_lifecycle_engine.controllers;
 
+import com.wikicoding.bank_account_lifecycle_engine.commandhandlers.CommandHandler;
 import com.wikicoding.bank_account_lifecycle_engine.commands.CreateAccountCommand;
 import com.wikicoding.bank_account_lifecycle_engine.commands.DepositMoneyCommand;
 import com.wikicoding.bank_account_lifecycle_engine.commands.WithdrawMoneyCommand;
@@ -8,7 +9,6 @@ import com.wikicoding.bank_account_lifecycle_engine.dtos.AccountResponse;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.CreateAccountRequest;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.DepositMoneyRequest;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.WithdrawMoneyRequest;
-import com.wikicoding.bank_account_lifecycle_engine.commandhandlers.CommandHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,11 +37,7 @@ public class AccountsController {
                 request.getStartBalance()
         ));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AccountResponse(
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getVersion()
-        ));
+        return ResponseEntity.status(HttpStatus.CREATED).body(getAccountResponse(account));
     }
 
     @PostMapping("{accountNumber}/deposit")
@@ -52,11 +48,7 @@ public class AccountsController {
 
         Account account = commandHandler.executeCommand(new DepositMoneyCommand(accountNumber, request.getAmount()));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AccountResponse(
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getVersion()
-        ));
+        return ResponseEntity.status(HttpStatus.CREATED).body(getAccountResponse(account));
     }
 
     @PostMapping("{accountNumber}/withdraw")
@@ -67,16 +59,22 @@ public class AccountsController {
 
         Account account = commandHandler.executeCommand(new WithdrawMoneyCommand(accountNumber, request.getAmount()));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AccountResponse(
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getVersion()
-        ));
+        return ResponseEntity.status(HttpStatus.CREATED).body(getAccountResponse(account));
     }
 
     @GetMapping("{accountNumber}")
     public ResponseEntity<Object> getAccounts(@PathVariable String accountNumber) {
         Account account = commandHandler.getAccountByAccountNumber(accountNumber);
-        return ResponseEntity.status(HttpStatus.OK).body(account);
+
+        return ResponseEntity.status(HttpStatus.OK).body(getAccountResponse(account));
+    }
+
+    private static AccountResponse getAccountResponse(Account account) {
+        return new AccountResponse(
+                account.getAccountNumber(),
+                account.getAccountName(),
+                account.getBalance(),
+                account.getVersion()
+        );
     }
 }

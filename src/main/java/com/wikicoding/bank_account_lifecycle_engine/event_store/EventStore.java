@@ -26,62 +26,18 @@ public class EventStore {
     @Transactional
     public void persistState(List<DomainEvent> events) {
         for (DomainEvent event : events) {
-            if (event instanceof CreatedAccountEvent createdAccountEvent) {
-                handleCreatedAccountEvent(createdAccountEvent);
-                continue;
-            }
+            String eventJson = objectMapper.writeValueAsString(event);
 
-            if (event instanceof DepositedMoneyEvent depositedMoneyEvent) {
-                handleDepositedMoneyEvent(depositedMoneyEvent);
-                continue;
-            }
+            EventDataModel eventDataModel = new EventDataModel(
+                    event.getAccountNumber(),
+                    UUID.randomUUID().toString(),
+                    event.getEventType(),
+                    event.getVersion(),
+                    eventJson
+            );
 
-            if (event instanceof WithdrewMoneyEvent withdrewMoneyEvent) {
-                handleWithdrewMoneyEvent(withdrewMoneyEvent);
-            }
+            eventsRepository.save(eventDataModel);
         }
-    }
-
-    private void handleCreatedAccountEvent(CreatedAccountEvent createdAccountEvent) {
-        String eventJson = objectMapper.writeValueAsString(createdAccountEvent);
-
-        EventDataModel eventDataModel = new EventDataModel(
-                createdAccountEvent.getAccountNumber(),
-                UUID.randomUUID().toString(),
-                createdAccountEvent.getEventType(),
-                1,
-                eventJson
-        );
-
-        eventsRepository.save(eventDataModel);
-    }
-
-    private void handleDepositedMoneyEvent(DepositedMoneyEvent event) {
-        String eventJson = objectMapper.writeValueAsString(event);
-
-        EventDataModel eventDataModel = new EventDataModel(
-                event.getAccountNumber(),
-                UUID.randomUUID().toString(),
-                event.getEventType(),
-                event.getVersion(),
-                eventJson
-        );
-
-        eventsRepository.save(eventDataModel);
-    }
-
-    private void handleWithdrewMoneyEvent(WithdrewMoneyEvent event) {
-        String eventJson = objectMapper.writeValueAsString(event);
-
-        EventDataModel eventDataModel = new EventDataModel(
-                event.getAccountNumber(),
-                UUID.randomUUID().toString(),
-                event.getEventType(),
-                event.getVersion(),
-                eventJson
-        );
-
-        eventsRepository.save(eventDataModel);
     }
 
     public List<DomainEvent> getAccountEvents(String accountNumber) {
