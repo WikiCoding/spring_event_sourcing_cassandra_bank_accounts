@@ -7,6 +7,7 @@ import com.wikicoding.bank_account_lifecycle_engine.events.CreatedAccountEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DepositedMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
+import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotYetImplementedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

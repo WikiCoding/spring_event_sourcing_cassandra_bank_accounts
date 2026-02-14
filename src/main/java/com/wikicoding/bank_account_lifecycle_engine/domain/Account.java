@@ -4,15 +4,20 @@ import com.wikicoding.bank_account_lifecycle_engine.events.CreatedAccountEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DepositedMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
+import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotEnoughFundsException;
+import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotYetImplementedException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @NoArgsConstructor
+@Slf4j
 public class Account {
+    private final List<DomainEvent> domainEvents = new ArrayList<>();
     @Getter
     private String accountNumber;
     @Getter
@@ -23,17 +28,14 @@ public class Account {
     private long createdAt;
     @Getter
     private int version;
-    private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     public void apply(DomainEvent domainEvent) {
-        if (domainEvent instanceof CreatedAccountEvent event) {
-            applyCreatedAccountDomainEvent(event);
-        } else if (domainEvent instanceof DepositedMoneyEvent event) {
-            applyDepositMoneyEvent(event);
-        } else if (domainEvent instanceof WithdrewMoneyEvent event) {
-            applyWithdrewMoneyEvent(event);
-        } else {
-            throw new IllegalArgumentException("Unknown DomainEvent type: " + domainEvent.getClass().getSimpleName());
+        switch (domainEvent) {
+            case CreatedAccountEvent event -> applyCreatedAccountDomainEvent(event);
+            case DepositedMoneyEvent event -> applyDepositMoneyEvent(event);
+            case WithdrewMoneyEvent event -> applyWithdrewMoneyEvent(event);
+            default -> throw new NotYetImplementedException("Unknown DomainEvent type: "
+                    + domainEvent.getClass().getSimpleName());
         }
     }
 
@@ -56,6 +58,10 @@ public class Account {
     private void applyWithdrewMoneyEvent(WithdrewMoneyEvent withdrewMoneyEvent) {
         this.version += 1;
         withdrewMoneyEvent.setVersion(version);
+        if (withdrewMoneyEvent.getAmount() > balance) {
+            log.error("Withdrawal amount exceeds current balance.");
+            throw new NotEnoughFundsException("Withdrawal amount exceeds current balance.");
+        }
         this.balance -= withdrewMoneyEvent.getAmount();
         domainEvents.add(withdrewMoneyEvent);
     }
@@ -99,3 +105,4 @@ public class Account {
                 '}';
     }
 }
+
