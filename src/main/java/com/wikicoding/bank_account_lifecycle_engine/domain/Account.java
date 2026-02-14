@@ -87,4 +87,15 @@ public class Account {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountNumber='" + accountNumber + '\'' +
+                ", accountName='" + accountName + '\'' +
+                ", balance=" + balance +
+                ", createdAt=" + createdAt +
+                ", version=" + version +
+                '}';
+    }
 }
