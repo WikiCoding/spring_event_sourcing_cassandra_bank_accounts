@@ -68,11 +68,9 @@ public class EventStore {
     }
 
     public List<DomainEvent> getAccountEvents(String accountNumber) {
-        List<EventDataModel> eventDataModels = eventsRepository.findAllByAccountNumber(accountNumber);
+        List<EventDataModel> eventDataModels = eventsRepository.findAllByAccountNumberOrderByVersionAsc(accountNumber);
 
-        List<DomainEvent> domainEvents = convertEventDataModelsToDomainEvents(eventDataModels);
-
-        return domainEvents.stream().sorted(Comparator.comparing(DomainEvent::getVersion)).toList();
+        return convertEventDataModelsToDomainEvents(eventDataModels);
     }
 
     private @NonNull List<DomainEvent> convertEventDataModelsToDomainEvents(List<EventDataModel> eventDataModels) {
