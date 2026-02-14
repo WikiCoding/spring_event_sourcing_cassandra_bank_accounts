@@ -16,4 +16,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorInfo> handleNotYetImplementedException(NotYetImplementedException ex) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(new ErrorInfo(ex.getMessage()));
     }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorInfo> handleAccountNotFoundException(AccountNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorInfo(ex.getMessage()));
+    }
 }

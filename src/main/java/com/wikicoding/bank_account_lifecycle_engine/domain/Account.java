@@ -6,8 +6,10 @@ import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotEnoughFundsException;
 import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotYetImplementedException;
+import com.wikicoding.bank_account_lifecycle_engine.repository.SnapshotDataModel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Slf4j
+@ToString
 public class Account {
     private final List<DomainEvent> domainEvents = new ArrayList<>();
     @Getter
@@ -94,15 +97,12 @@ public class Account {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Account{" +
-                "accountNumber='" + accountNumber + '\'' +
-                ", accountName='" + accountName + '\'' +
-                ", balance=" + balance +
-                ", createdAt=" + createdAt +
-                ", version=" + version +
-                '}';
+    public void setStateFromSnapshot(SnapshotDataModel snapshot) {
+        this.accountNumber = snapshot.getAccountNumber();
+        this.accountName = snapshot.getAccountName();
+        this.balance = snapshot.getBalance();
+        this.createdAt = snapshot.getCreatedAt();
+        this.version = snapshot.getVersion();
     }
 }
 

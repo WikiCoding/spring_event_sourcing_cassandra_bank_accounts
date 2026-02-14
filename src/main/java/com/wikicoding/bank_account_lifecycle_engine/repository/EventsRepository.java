@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface EventsRepository extends CassandraRepository<EventDataModel, String> {
     List<EventDataModel> findAllByAccountNumber(String accountNumber);
+    List<EventDataModel> findAllByAccountNumberAndVersionGreaterThan(String accountNumber, int version);
 }

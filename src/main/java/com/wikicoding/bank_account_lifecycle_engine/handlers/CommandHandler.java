@@ -1,4 +1,4 @@
-package com.wikicoding.bank_account_lifecycle_engine.commandhandlers;
+package com.wikicoding.bank_account_lifecycle_engine.handlers;
 
 import com.wikicoding.bank_account_lifecycle_engine.commands.*;
 import com.wikicoding.bank_account_lifecycle_engine.domain.Account;
@@ -7,14 +7,17 @@ import com.wikicoding.bank_account_lifecycle_engine.events.CreatedAccountEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DepositedMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
+import com.wikicoding.bank_account_lifecycle_engine.exceptions.AccountNotFoundException;
 import com.wikicoding.bank_account_lifecycle_engine.exceptions.NotYetImplementedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,18 +26,38 @@ public class CommandHandler {
     private final EventStore eventStore;
 
     public Account executeCommand(Command cmd) {
+        log.info("Processing command {}", cmd);
         DomainEvent domainEvent = extractCommandDetails(cmd);
 
+        Optional<Account> accountSnapshot = eventStore.getAccountSnapshotState(cmd.getAccountNumber());
+
+        return accountSnapshot.map(account -> processUsingSnapshot(account, domainEvent))
+                .orElseGet(() -> processWithoutSnapshot(cmd, domainEvent));
+    }
+
+    private @NonNull Account processWithoutSnapshot(Command cmd, DomainEvent domainEvent) {
         List<DomainEvent> domainEvents = eventStore.getAccountEvents(cmd.getAccountNumber());
+
+        if (!(domainEvent instanceof CreatedAccountEvent) && domainEvents.isEmpty()) {
+            log.error("No events found for account number: {}", cmd.getAccountNumber());
+            throw new AccountNotFoundException("No events found for account number: " + cmd.getAccountNumber());
+        }
 
         Account account = new Account();
         account.rebuildState(domainEvents);
         if (account.getAccountNumber() != null) log.info("Account rebuilt state: {}", account);
         account.apply(domainEvent);
 
-        eventStore.persistState(account.getDomainEvents());
+        eventStore.persistState(account.getDomainEvents(), account);
         log.info("Account persisted state for accountNumber: {}", account.getAccountNumber());
 
+        return account;
+    }
+
+    private @NonNull Account processUsingSnapshot(Account account, DomainEvent domainEvent) {
+        log.info("Processing using snapshot for accountNumber: {}", account.getAccountNumber());
+        account.apply(domainEvent);
+        eventStore.persistState(account.getDomainEvents(), account);
         return account;
     }
 
@@ -68,14 +91,5 @@ public class CommandHandler {
         }
 
         return domainEvent;
-    }
-
-    public Account getAccountByAccountNumber(String accountNumber) {
-        List<DomainEvent> domainEvents = eventStore.getAccountEvents(accountNumber);
-
-        Account account = new Account();
-        account.rebuildState(domainEvents);
-
-        return account;
     }
 }

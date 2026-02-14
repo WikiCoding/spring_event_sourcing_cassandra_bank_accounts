@@ -1,6 +1,6 @@
 package com.wikicoding.bank_account_lifecycle_engine.controllers;
 
-import com.wikicoding.bank_account_lifecycle_engine.commandhandlers.CommandHandler;
+import com.wikicoding.bank_account_lifecycle_engine.handlers.CommandHandler;
 import com.wikicoding.bank_account_lifecycle_engine.commands.CreateAccountCommand;
 import com.wikicoding.bank_account_lifecycle_engine.commands.DepositMoneyCommand;
 import com.wikicoding.bank_account_lifecycle_engine.commands.WithdrawMoneyCommand;
@@ -9,6 +9,7 @@ import com.wikicoding.bank_account_lifecycle_engine.dtos.AccountResponse;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.CreateAccountRequest;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.DepositMoneyRequest;
 import com.wikicoding.bank_account_lifecycle_engine.dtos.WithdrawMoneyRequest;
+import com.wikicoding.bank_account_lifecycle_engine.handlers.QueryHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Slf4j
 public class AccountsController {
     private final CommandHandler commandHandler;
+    private final QueryHandler queryHandler;
 
     @PostMapping
     public ResponseEntity<Object> createAccount(@RequestBody CreateAccountRequest request) {
@@ -64,7 +66,7 @@ public class AccountsController {
 
     @GetMapping("{accountNumber}")
     public ResponseEntity<Object> getAccounts(@PathVariable String accountNumber) {
-        Account account = commandHandler.getAccountByAccountNumber(accountNumber);
+        Account account = queryHandler.getAccountByAccountNumber(accountNumber);
 
         return ResponseEntity.status(HttpStatus.OK).body(getAccountResponse(account));
     }
