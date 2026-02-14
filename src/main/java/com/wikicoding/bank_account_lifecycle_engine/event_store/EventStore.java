@@ -28,7 +28,7 @@ public class EventStore {
     private int SNAPSHOT_INTERVAL;
     private final EventsRepository eventsRepository;
     private final SnapshotsRepository snapshotsRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void persistState(List<DomainEvent> events, Account account) {
