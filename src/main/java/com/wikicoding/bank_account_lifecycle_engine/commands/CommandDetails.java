@@ -1,11 +1,12 @@
 package com.wikicoding.bank_account_lifecycle_engine.commands;
 
+import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DepositMoneyCommand implements Command {
+public class CommandDetails {
     private final String accountNumber;
-    private final double amount;
+    private final DomainEvent domainEvent;
 }

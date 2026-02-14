@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class WithdrawMoneyCommand {
+public class WithdrawMoneyCommand implements Command {
     private final String accountNumber;
     private final double amount;
 }

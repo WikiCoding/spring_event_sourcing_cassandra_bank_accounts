@@ -1,6 +1,5 @@
 package com.wikicoding.bank_account_lifecycle_engine.domain;
 
-import com.wikicoding.bank_account_lifecycle_engine.commands.CreateAccountCommand;
 import com.wikicoding.bank_account_lifecycle_engine.events.CreatedAccountEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DepositedMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
@@ -8,12 +7,9 @@ import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @NoArgsConstructor
 public class Account {
@@ -29,16 +25,16 @@ public class Account {
     private int version;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    public Account(CreateAccountCommand command) {
-        applyCreatedAccountDomainEvent(
-                new CreatedAccountEvent(
-                        UUID.randomUUID().toString(),
-                        command.getAccountName(),
-                        command.getStartBalance(),
-                        LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                        1
-                )
-        );
+    public void apply(DomainEvent domainEvent) {
+        if (domainEvent instanceof CreatedAccountEvent event) {
+            applyCreatedAccountDomainEvent(event);
+        } else if (domainEvent instanceof DepositedMoneyEvent event) {
+            applyDepositMoneyEvent(event);
+        } else if (domainEvent instanceof WithdrewMoneyEvent event) {
+            applyWithdrewMoneyEvent(event);
+        } else {
+            throw new IllegalArgumentException("Unknown DomainEvent type: " + domainEvent.getClass().getSimpleName());
+        }
     }
 
     private void applyCreatedAccountDomainEvent(CreatedAccountEvent event) {
@@ -50,14 +46,14 @@ public class Account {
         domainEvents.add(event);
     }
 
-    public void applyDepositMoneyEvent(DepositedMoneyEvent depositedMoneyEvent) {
+    private void applyDepositMoneyEvent(DepositedMoneyEvent depositedMoneyEvent) {
         this.version += 1;
         depositedMoneyEvent.setVersion(version);
         this.balance += depositedMoneyEvent.getAmount();
         domainEvents.add(depositedMoneyEvent);
     }
 
-    public void applyWithdrewMoneyEvent(WithdrewMoneyEvent withdrewMoneyEvent) {
+    private void applyWithdrewMoneyEvent(WithdrewMoneyEvent withdrewMoneyEvent) {
         this.version += 1;
         withdrewMoneyEvent.setVersion(version);
         this.balance -= withdrewMoneyEvent.getAmount();

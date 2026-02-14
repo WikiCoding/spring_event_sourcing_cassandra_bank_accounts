@@ -4,7 +4,7 @@ import com.wikicoding.bank_account_lifecycle_engine.commands.CreateAccountComman
 import com.wikicoding.bank_account_lifecycle_engine.commands.DepositMoneyCommand;
 import com.wikicoding.bank_account_lifecycle_engine.commands.WithdrawMoneyCommand;
 import com.wikicoding.bank_account_lifecycle_engine.domain.Account;
-import com.wikicoding.bank_account_lifecycle_engine.services.EventHandlers;
+import com.wikicoding.bank_account_lifecycle_engine.services.CommandHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,29 +14,29 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/accounts")
 @RequiredArgsConstructor
 public class AccountsController {
-    private final EventHandlers eventHandlers;
+    private final CommandHandler commandHandler;
 
     @PostMapping
     public ResponseEntity<Object> createAccount(@RequestBody CreateAccountCommand command) {
-        eventHandlers.createAccountEventHandler(command);
+        commandHandler.executeCommand(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("deposit")
     public ResponseEntity<Object> depositMoney(@RequestBody DepositMoneyCommand command) {
-        eventHandlers.depositMoneyEventHandler(command);
+        commandHandler.executeCommand(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("withdraw")
     public ResponseEntity<Object> withdrawMoney(@RequestBody WithdrawMoneyCommand command) {
-        eventHandlers.withdrawMoneyEventHandler(command);
+        commandHandler.executeCommand(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("{accountNumber}")
     public ResponseEntity<Object> getAccounts(@PathVariable String accountNumber) {
-        Account account = eventHandlers.getAccountByAccountNumber(accountNumber);
+        Account account = commandHandler.getAccountByAccountNumber(accountNumber);
         return ResponseEntity.status(HttpStatus.OK).body(account);
     }
 }

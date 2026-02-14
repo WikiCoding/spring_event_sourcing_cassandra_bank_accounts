@@ -14,13 +14,6 @@ public class CreatedAccountEvent implements DomainEvent {
     private long dateTime;
     private int version;
 
-    public CreatedAccountEvent(String accountNumber, String accountName, double startBalance, long dateTime) {
-        this.accountNumber = accountNumber;
-        this.accountName = accountName;
-        this.startBalance = startBalance;
-        this.dateTime = dateTime;
-    }
-
     @Override
     public String getEventType() {
         return this.getClass().getSimpleName();

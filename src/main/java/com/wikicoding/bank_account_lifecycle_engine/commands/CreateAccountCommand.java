@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CreateAccountCommand {
+public class CreateAccountCommand implements Command {
     private final String accountName;
     private final double startBalance;
 }
