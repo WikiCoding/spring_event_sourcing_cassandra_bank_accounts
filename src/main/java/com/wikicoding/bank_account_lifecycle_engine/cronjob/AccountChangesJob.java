@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -22,10 +21,10 @@ public class AccountChangesJob {
     @Scheduled(fixedRate = 5000)
     @Transactional
     public void sendUpdates() {
-        List<OutboxDataModel> outboxDataModels = outboxRepository.findAllByProcessed(false);
+        Iterable<OutboxDataModel> outboxDataModels = outboxRepository.findAll();
 
         for (OutboxDataModel outboxDataModel : outboxDataModels) {
-            var accountProto = AccountOuterClass.Account.newBuilder()
+            AccountOuterClass.Account accountProto = AccountOuterClass.Account.newBuilder()
                     .setAccountNumber(outboxDataModel.getAccountNumber())
                     .setAccountName(outboxDataModel.getAccountName())
                     .setBalance(outboxDataModel.getBalance())

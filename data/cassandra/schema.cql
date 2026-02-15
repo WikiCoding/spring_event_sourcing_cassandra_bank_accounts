@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS outbox_keyspace.outbox
     account_number text,
     account_name   text,
     balance        double,
+    created_at     bigint,
     version        int,
-    processed      boolean,
-    PRIMARY KEY ((processed), version, account_number)
+    PRIMARY KEY (account_number)
 );

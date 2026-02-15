@@ -42,8 +42,8 @@ public class EventStore {
                         account.getAccountNumber(),
                         account.getAccountName(),
                         account.getBalance(),
-                        account.getVersion(),
-                        false
+                        account.getCreatedAt(),
+                        account.getVersion()
                 )
         );
     }
