@@ -9,9 +9,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @Service
 @AllArgsConstructor
 public class AccountChangesJob {
@@ -28,7 +25,7 @@ public class AccountChangesJob {
                     .setAccountNumber(outboxDataModel.getAccountNumber())
                     .setAccountName(outboxDataModel.getAccountName())
                     .setBalance(outboxDataModel.getBalance())
-                    .setCreatedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                    .setCreatedAt(outboxDataModel.getCreatedAt())
                     .setVersion(outboxDataModel.getVersion())
                     .build();
 
