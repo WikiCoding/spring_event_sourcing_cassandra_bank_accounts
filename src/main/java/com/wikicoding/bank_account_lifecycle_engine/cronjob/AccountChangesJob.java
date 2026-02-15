@@ -1,7 +1,7 @@
 package com.wikicoding.bank_account_lifecycle_engine.cronjob;
 
 import com.wikicoding.bank_account_lifecycle_engine.AccountOuterClass;
-import com.wikicoding.bank_account_lifecycle_engine.kafka.Producer;
+import com.wikicoding.bank_account_lifecycle_engine.kafka.KafkaProducer;
 import com.wikicoding.bank_account_lifecycle_engine.repository.OutboxDataModel;
 import com.wikicoding.bank_account_lifecycle_engine.repository.OutboxRepository;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountChangesJob {
     private final OutboxRepository outboxRepository;
-    private final Producer producer;
+    private final KafkaProducer kafkaProducer;
 
     @Scheduled(fixedRate = 5000)
     @Transactional
@@ -33,7 +33,7 @@ public class AccountChangesJob {
                     .setVersion(outboxDataModel.getVersion())
                     .build();
 
-            producer.sendMessage(outboxDataModel.getAccountNumber(), accountProto.toByteArray());
+            kafkaProducer.sendMessage(outboxDataModel.getAccountNumber(), accountProto.toByteArray());
 
             outboxRepository.delete(outboxDataModel);
         }

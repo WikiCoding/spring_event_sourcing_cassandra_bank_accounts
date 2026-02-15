@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Producer {
+public class KafkaProducer {
     @Value("${kafka.producer.topic:test1}")
     private String topic;
     private final KafkaTemplate<String, byte[]> kafkaTemplate;
