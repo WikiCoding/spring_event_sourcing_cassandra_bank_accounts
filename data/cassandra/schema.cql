@@ -24,3 +24,17 @@ CREATE TABLE IF NOT EXISTS snapshots_keyspace.snapshot
     version        int,
     PRIMARY KEY (account_number)
 );
+
+CREATE KEYSPACE IF NOT EXISTS outbox_keyspace
+    WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}
+     AND durable_writes = true;
+
+CREATE TABLE IF NOT EXISTS outbox_keyspace.outbox
+(
+    account_number text,
+    account_name   text,
+    balance        double,
+    version        int,
+    processed      boolean,
+    PRIMARY KEY ((processed), version, account_number)
+);

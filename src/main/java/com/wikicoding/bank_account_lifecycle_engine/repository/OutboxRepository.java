@@ -1,0 +1,11 @@
+package com.wikicoding.bank_account_lifecycle_engine.repository;
+
+import org.springframework.data.cassandra.repository.CassandraRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface OutboxRepository extends CassandraRepository<OutboxDataModel,String> {
+    List<OutboxDataModel> findAllByProcessed(boolean processed);
+}

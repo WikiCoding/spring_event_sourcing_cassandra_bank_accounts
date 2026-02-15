@@ -6,10 +6,7 @@ import com.wikicoding.bank_account_lifecycle_engine.events.CreatedAccountEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DepositedMoneyEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.DomainEvent;
 import com.wikicoding.bank_account_lifecycle_engine.events.WithdrewMoneyEvent;
-import com.wikicoding.bank_account_lifecycle_engine.repository.EventDataModel;
-import com.wikicoding.bank_account_lifecycle_engine.repository.EventsRepository;
-import com.wikicoding.bank_account_lifecycle_engine.repository.SnapshotDataModel;
-import com.wikicoding.bank_account_lifecycle_engine.repository.SnapshotsRepository;
+import com.wikicoding.bank_account_lifecycle_engine.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -18,17 +15,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EventStore {
-    @Value("${event.store.snapshot.interval}")
-    private int SNAPSHOT_INTERVAL;
     private final EventsRepository eventsRepository;
     private final SnapshotsRepository snapshotsRepository;
+    private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
+    @Value("${event.store.snapshot.interval}")
+    private int SNAPSHOT_INTERVAL;
 
     @Transactional
     public void persistState(List<DomainEvent> events, Account account) {
@@ -36,6 +36,16 @@ public class EventStore {
             saveEvent(event);
             if (event.getVersion() % SNAPSHOT_INTERVAL == 0) saveSnapshot(account);
         }
+
+        outboxRepository.save(
+                new OutboxDataModel(
+                        account.getAccountNumber(),
+                        account.getAccountName(),
+                        account.getBalance(),
+                        account.getVersion(),
+                        false
+                )
+        );
     }
 
     private void saveEvent(DomainEvent event) {
