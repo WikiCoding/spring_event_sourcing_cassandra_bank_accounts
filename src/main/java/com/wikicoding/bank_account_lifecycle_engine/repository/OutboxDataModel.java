@@ -24,7 +24,7 @@ public class OutboxDataModel {
     private String accountName;
     @Column("balance")
     private double balance;
-    @Column("createdAt")
+    @Column("created_at")
     private long createdAt;
     @Column("version")
     private int version;

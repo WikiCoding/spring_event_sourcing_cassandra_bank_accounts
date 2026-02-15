@@ -18,5 +18,6 @@ public class KafkaProducer {
     public void sendMessage(String accountNumber, byte[] message) {
         ProducerRecord<String, byte[]> record = new ProducerRecord<>(topic, accountNumber, message);
         kafkaTemplate.send(record);
+        log.info("Sent message to topic: {} from Account Number: {}", topic, accountNumber);
     }
 }
