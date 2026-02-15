@@ -1,0 +1,19 @@
+scrape_configs:
+  - job_name: 'Lifecycle Engine'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 3s
+    static_configs:
+      - targets: ['192.168.1.70:8081']
+        labels:
+          application: 'Lifecycle Engine Application'
+  - job_name: 'Accounts Queries'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 3s
+    static_configs:
+      - targets: [ '192.168.1.70:8082' ]
+        labels:
+          application: 'Accounts Queries'
+  - job_name: 'kafka'
+    scrape_interval: 3s
+    static_configs:
+      - targets: ['kafka-exporter:9308']
