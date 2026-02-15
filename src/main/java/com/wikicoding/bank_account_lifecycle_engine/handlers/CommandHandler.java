@@ -35,32 +35,6 @@ public class CommandHandler {
                 .orElseGet(() -> processWithoutSnapshot(cmd, domainEvent));
     }
 
-    private @NonNull Account processWithoutSnapshot(Command cmd, DomainEvent domainEvent) {
-        List<DomainEvent> domainEvents = eventStore.getAccountEvents(cmd.getAccountNumber());
-
-        if (!(domainEvent instanceof CreatedAccountEvent) && domainEvents.isEmpty()) {
-            log.error("No events found for account number: {}", cmd.getAccountNumber());
-            throw new AccountNotFoundException("No events found for account number: " + cmd.getAccountNumber());
-        }
-
-        Account account = new Account();
-        account.rebuildState(domainEvents);
-        if (account.getAccountNumber() != null) log.info("Account rebuilt state: {}", account);
-        account.apply(domainEvent);
-
-        eventStore.persistState(account.getDomainEvents(), account);
-        log.info("Account persisted state for accountNumber: {}", account.getAccountNumber());
-
-        return account;
-    }
-
-    private @NonNull Account processUsingSnapshot(Account account, DomainEvent domainEvent) {
-        log.info("Processing using snapshot for accountNumber: {}", account.getAccountNumber());
-        account.apply(domainEvent);
-        eventStore.persistState(account.getDomainEvents(), account);
-        return account;
-    }
-
     private DomainEvent extractCommandDetails(Command cmd) {
         DomainEvent domainEvent;
 
@@ -91,5 +65,31 @@ public class CommandHandler {
         }
 
         return domainEvent;
+    }
+
+    private @NonNull Account processUsingSnapshot(Account account, DomainEvent domainEvent) {
+        log.info("Processing using snapshot for accountNumber: {}", account.getAccountNumber());
+        account.apply(domainEvent);
+        eventStore.persistState(account.getDomainEvents(), account);
+        return account;
+    }
+
+    private @NonNull Account processWithoutSnapshot(Command cmd, DomainEvent domainEvent) {
+        List<DomainEvent> domainEvents = eventStore.getAccountEvents(cmd.getAccountNumber());
+
+        if (!(domainEvent instanceof CreatedAccountEvent) && domainEvents.isEmpty()) {
+            log.error("No events found for account number: {}", cmd.getAccountNumber());
+            throw new AccountNotFoundException("No events found for account number: " + cmd.getAccountNumber());
+        }
+
+        Account account = new Account();
+        account.rebuildState(domainEvents);
+        if (account.getAccountNumber() != null) log.info("Account rebuilt state: {}", account);
+        account.apply(domainEvent);
+
+        eventStore.persistState(account.getDomainEvents(), account);
+        log.info("Account persisted state for accountNumber: {}", account.getAccountNumber());
+
+        return account;
     }
 }
