@@ -1,7 +1,7 @@
 # Summary
 Small project to get familiar modeling for Cassandra and have a hands on with it. 
 Used Event Sourcing with Snapshots to practice, without any concurrency checks in place.
-Used the Outbox Pattern to dispatch Kafka Messages to a Queries Service which will consume those messages and Store the current state of an Account in a PostgreSQL database and exposes a GET API to check the accounts.
+Used the Outbox Pattern to dispatch Kafka Messages to a Queries Service which will consume those messages and Store the current state of an Account in a PostgreSQL database, creating the Projection, and exposes a GET API to check the accounts.
 
 # Run the project
 
@@ -13,7 +13,8 @@ Used the Outbox Pattern to dispatch Kafka Messages to a Queries Service which wi
 6. visit `localhost:80` to check Cassandra's key spaces and tables
 7. visit `localhost:8083` to check Adminer for PostgresSQL database and tables
 8. visit `localhost:8080` to check the Kafka UI
-9. visit `http://localhost:3000` to explore the logs and metrics from both apps in Grafana
+9. visit `localhost:16686` to check Distributed Tracing in Jaeger
+10. visit `http://localhost:3000` to explore the logs and metrics from both apps in Grafana
 
 # APIs
 ## Bank Accounts Lifecycle Engine
@@ -120,6 +121,36 @@ message Account {
     <artifactId>spring-boot-starter-kafka</artifactId>
 </dependency> 
 ```
-3. Distributed Tracing with OTLP Exporter and Jaeger is now incompatible with Springboot 4.X
+3. Distributed Tracing with OTLP Exporter and Jaeger is now incompatible with Springboot 4.X. Springboot 4.X now comes with built-in first class support for OpenTelemetry
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-opentelemetry</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.github.loki4j</groupId>
+    <artifactId>loki-logback-appender</artifactId>
+    <version>1.6.0</version>
+</dependency>
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency> 
+```
+```bash
+spring.kafka.template.observation-enabled=true
+spring.kafka.listener.observation-enabled=true
+
+management.endpoints.web.exposure.include=*
+management.prometheus.metrics.export.enabled=true
+management.prometheus.metrics.export.pushgateway.enabled=true
+management.opentelemetry.tracing.export.otlp.endpoint=http://localhost:4318/v1/traces
+management.tracing.sampling.probability=1.0
+management.otlp.metrics.export.enabled=false
+```
 4. Cassandra rule number 1 might be that you should create your data models based on how you need to query the data
-5. Cassandra shows very fast writes and it feels slower when querying data
+5. Cassandra shows very fast writes, and it feels slower when querying data
